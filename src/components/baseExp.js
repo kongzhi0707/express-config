@@ -525,19 +525,29 @@ export default class BaseExp extends Component {
         // 判断当前被删除的元素是 首元素/中间元素/尾部元素
         const curElemPos = getElemPos(curElemIndex, tokens);
         if (curElemPos === 0) { // 首元素
-          // 这里一样要判断是否有count 比如 像 count(__ / ___) 这种
-          const val = tokens[curElemIndex].value;
+          // 这里一样要判断是否有count 比如 像 count(__ / ___) + ___ 这种 删除count的第一个元素的话，需要处理
           const flag = isHasCount();
-          if (val !== 'L$count' && flag) {
-            startPos = curElemIndex;
-            endPos = getNextCharIndex(curElemIndex) + 1;
-            tokens.splice(startPos, endPos - startPos);
+          if (flag) {
+            if (curElemIndex + 1 <= tokens.length - 1) {
+              const val = tokens[curElemIndex + 1].value;
+              if (chars.indexOf(val) > -1) { // 说明有下一个运算符
+                startPos = curElemIndex;
+                endPos = getNextCharIndex(curElemIndex) + 1;
+                tokens.splice(startPos, endPos - startPos);
+              } else {
+                // 如果是首元素的话，我需要删除 从 0 开始，到下个运算符结束位置，包括运算符索引
+                startPos = 0;
+                endPos = getNextCharIndex(curElemIndex) + 1;
+                tokens.splice(startPos, endPos);
+              }
+            }
           } else {
             // 如果是首元素的话，我需要删除 从 0 开始，到下个运算符结束位置，包括运算符索引
             startPos = 0;
             endPos = getNextCharIndex(curElemIndex) + 1;
             tokens.splice(startPos, endPos);
           }
+          
         } else if (curElemPos === 1 || curElemPos === 2) { // 中间元素 或 尾部元素
           // 如果是 中间元素 或 尾部元素 则需要删除上一个运算符 加 当前的元素
           startPos = getPrevCharIndex(curElemIndex);
@@ -554,7 +564,15 @@ export default class BaseExp extends Component {
               tokens.splice(startPos); // 截取掉tokens值
             }
           } else {
-            tokens.splice(startPos, endPos - startPos); // 截取掉tokens值
+            // 这里还需要判断一种情况，比如 count(__/___); 当我删除运算符最后一个元素的时候，只需要把 / 运算符 和 元素删除即可
+            // 我只需要判断当前元素的前一个元素是否有运算符，如果有运算符的话，删除运算符 和 当前元素即可
+            let flag = isHasChar(curElemIndex, tokens, 'prev');
+            if (flag) {
+              endPos = curElemIndex - startPos + 1; // 因为后面还需要加上运算符
+              tokens.splice(startPos, endPos);
+            } else {
+              tokens.splice(startPos, endPos - startPos); // 截取掉tokens值
+            }
           }
         } else if (curElemPos === 3) { // 最后元素
           startPos = 0;
