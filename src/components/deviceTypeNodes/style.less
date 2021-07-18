@@ -1,0 +1,39 @@
+.device-type-nodes {
+  position: fixed;
+  top: 18px;
+  bottom: 20px;
+  left: 0px;
+  width: 332px;
+  display: flex;
+  flex-direction: column;
+
+  .aisc-section {
+    height: 100%;
+    width:93%;
+  }
+
+  .next-tree-title {
+    font-size: 12px;
+
+    .label {
+      color: #74778a;
+    }
+  }
+
+  [draggable=true] {
+    .label {
+      color: #bcc5cc;
+    }
+  }
+
+  .aisc-section-body {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+
+    >ul {
+      overflow: auto;
+      flex: 1;
+    }
+  }
+}
